@@ -1,0 +1,13 @@
+#include <stdio.h>
+#include <math.h>
+int main() {
+    int total_chars = 25; 
+    double log2_keys = 0;
+    for (int i = 1; i <= total_chars; i++) {
+        log2_keys += log2(i);
+    }
+    printf("Approximate number of possible keys: 2^%.0f\n", log2_keys);
+    double log2_effective_keys = log2_keys - 2 * log2(120);  
+    printf("Approximate number of effectively unique keys: 2^%.0f\n", log2_effective_keys);
+    return 0;
+}
