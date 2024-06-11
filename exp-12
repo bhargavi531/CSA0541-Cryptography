@@ -1,0 +1,31 @@
+#include <stdio.h>
+#include <string.h>
+int main() {
+    char message[] = "meetmeattheusualplaceattenratherthaneightoclock";
+    char encrypted[100] = "";
+    int key[2][2] = { {9, 4}, {5, 7} };
+    int len = strlen(message);
+    if (len % 2 != 0) {
+        strcat(message, "x");
+        len++;
+    }
+    for (int i = 0; i < len; i += 2) {
+        int a = message[i] - 'a';
+        int b = message[i + 1] - 'a';
+        encrypted[i] = ((key[0][0] * a + key[0][1] * b) % 26) + 'a';
+        encrypted[i + 1] = ((key[1][0] * a + key[1][1] * b) % 26) + 'a';
+    }
+    encrypted[len] = '\0';
+    printf("Encrypted message: %s\n", encrypted);
+    char decrypted[100] = "";
+    int inv_key[2][2] = { {5, 22}, {21, 15} }; 
+    for (int i = 0; i < len; i += 2) {
+        int a = encrypted[i] - 'a';
+        int b = encrypted[i + 1] - 'a';
+        decrypted[i] = ((inv_key[0][0] * a + inv_key[0][1] * b) % 26) + 'a';
+        decrypted[i + 1] = ((inv_key[1][0] * a + inv_key[1][1] * b) % 26) + 'a';
+    }
+    decrypted[len] = '\0';
+    printf("Decrypted message: %s\n", decrypted);
+    return 0;
+}
