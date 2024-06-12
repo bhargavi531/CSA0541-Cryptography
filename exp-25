@@ -1,0 +1,32 @@
+#include <stdio.h>
+unsigned long gcd(unsigned long a, unsigned long b) {
+    while (b != 0) {
+        unsigned long temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+int main() {
+    unsigned long n = 3233; 
+    unsigned long e = 17;   
+    unsigned long M = 61;   
+    unsigned long common_factor = gcd(M, n);
+    if (common_factor != 1 && common_factor != n) {
+        printf("Found a factor of n: %lu\n", common_factor);
+        unsigned long p = common_factor;
+        unsigned long q = n / p;
+        printf("p: %lu, q: %lu\n", p, q);
+        unsigned long phi_n = (p - 1) * (q - 1);
+        unsigned long d;
+        for (d = 2; d < phi_n; d++) {
+            if ((d * e) % phi_n == 1) {
+                break;
+            }
+        }
+        printf("Private key d: %lu\n", d);
+    } else {
+        printf("No useful common factor found.\n");
+    }
+    return 0;
+}
