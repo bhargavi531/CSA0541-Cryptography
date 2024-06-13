@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+static const uint8_t sbox[8][64] = {
+    { 
+        14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
+        0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8,
+        4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0,
+        15, 12, 8, 2, 4, 9, 1, 7, 5, 11, 3, 14, 10, 0, 6, 13
+    },
+};
+static const uint8_t initial_perm[64] = {
+    58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4,
+    62, 54, 46, 38, 30, 22, 14, 6, 64, 56, 48, 40, 32, 24, 16, 8,
+    57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3,
+    61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7
+};
+static const uint8_t final_perm[64] = {
+    40, 8, 48, 16, 56, 24, 64, 32, 39, 7, 47, 15, 55, 23, 63, 31,
+    38, 6, 46, 14, 54, 22, 62, 30, 37, 5, 45, 13, 53, 21, 61, 29,
+    36, 4, 44, 12, 52, 20, 60, 28, 35, 3, 43, 11, 51, 19, 59, 27,
+    34, 2, 42, 10, 50, 18, 58, 26, 33, 1, 41, 9, 49, 17, 57, 25
+};
+void permute(uint8_t *data, const uint8_t *table, uint8_t *result) {
+    for (int i = 0; i < 64; i++) {
+        int bit_pos = table[i] - 1;
+        result[i/8] |= ((data[bit_pos/8] >> (7 - (bit_pos % 8))) & 0x01) << (7 - (i % 8));
+    }
+}
+void generate_subkeys(uint8_t *key, uint8_t subkeys[16][48]) {
+}
+void des_encrypt_decrypt(uint8_t *block, uint8_t *key, uint8_t *output, int decrypt) {
+    uint8_t initial_permuted_block[8] = {0};
+    uint8_t final_permuted_block[8] = {0};
+    uint8_t left[4], right[4], new_right[4];
+    uint8_t subkeys[16][48];
+    permute(block, initial_perm, initial_permuted_block);
+    memcpy(left, initial_permuted_block, 4);
+    memcpy(right, initial_permuted_block + 4, 4);
+    generate_subkeys(key, subkeys);
+    for (int round = 0; round < 16; round++) {
+        int subkey_index = decrypt ? (15 - round) : round;
+        for (int i = 0; i < 4; i++) {
+            new_right[i] = left[i] ^ right[i]; 
+        }
+        memcpy(left, right, 4);
+        memcpy(right, new_right, 4);
+    }
+    memcpy(final_permuted_block, right, 4);
+    memcpy(final_permuted_block + 4, left, 4);
+    permute(final_permuted_block, final_perm, output);
+}
+int main() {
+    uint8_t plaintext[8] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF};
+    uint8_t key[8] = {0x13, 0x34, 0x57, 0x79, 0x9B, 0xBC, 0xDF, 0xF1};
+    uint8_t ciphertext[8] = {0};
+    uint8_t decryptedtext[8] = {0};
+    printf("Plaintext: ");
+    for (int i = 0; i < 8; i++) {
+        printf("%02x ", plaintext[i]);
+    }
+    printf("\n");
+    des_encrypt_decrypt(plaintext, key, ciphertext, 0);
+    printf("Ciphertext: ");
+    for (int i = 0; i < 8; i++) {
+        printf("%02x ", ciphertext[i]);
+    }
+    printf("\n");
+    des_encrypt_decrypt(ciphertext, key, decryptedtext, 1);
+    printf("Decrypted text: ");
+    for (int i = 0; i < 8; i++) {
+        printf("%02x ", decryptedtext[i]);
+    }
+    printf("\n");
+    return 0;
+}
