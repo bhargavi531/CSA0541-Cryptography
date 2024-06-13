@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#define ALPHABET_SIZE 26
+int mod_inverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++) {
+        if ((a * x) % m == 0) {
+            return x;
+        }
+    }
+    return -1;
+}
+void affine_encrypt(char *plaintext, char *ciphertext, int a, int b) {
+    size_t len = strlen(plaintext);
+    for (size_t i = 0; i < len; i++) {
+        if (isalpha(plaintext[i])) {
+            int p = tolower(plaintext[i]) - 'a';
+            ciphertext[i] = ((a * p + b) % ALPHABET_SIZE) + 'a';
+            if (isupper(plaintext[i])) {
+                ciphertext[i] = toupper(ciphertext[i]);
+            }
+        } else {
+            ciphertext[i] = plaintext[i];
+        }
+    }
+    ciphertext[len] = '\0';
+}
+void affine_decrypt(char *ciphertext, char *plaintext, int a, int b) {
+    int a_inv = mod_inverse(a, ALPHABET_SIZE);
+    if (a_inv == -1) {
+        printf("No modular inverse exists for a = %d and m = %d\n", a, ALPHABET_SIZE);
+        return;
+    }
+    size_t len = strlen(ciphertext);
+    for (size_t i = 0; i < len; i++) {
+        if (isalpha(ciphertext[i])) {
+            int c = tolower(ciphertext[i]) - 'a';
+            plaintext[i] = ((a_inv * (c - b + ALPHABET_SIZE)) % ALPHABET_SIZE) + 'a';
+            if (isupper(ciphertext[i])) {
+                plaintext[i] = toupper(plaintext[i]);
+            }
+        } else {
+            plaintext[i] = ciphertext[i];
+        }
+    }
+    plaintext[len] = '\0';
+}
+int main() {
+    char plaintext[256];
+    char ciphertext[256];
+    char decryptedtext[256];
+    int a, b;
+    printf("Enter the plaintext: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+    plaintext[strcspn(plaintext, "\n")] = '\0'; 
+    printf("Enter the value of a (coprime with 26): ");
+    scanf("%d", &a);
+    printf("Enter the value of b: ");
+    scanf("%d", &b);
+    affine_encrypt(plaintext, ciphertext, a, b);
+    printf("Ciphertext: %s\n", ciphertext);
+    affine_decrypt(ciphertext, decryptedtext, a, b);
+    printf("Decrypted text: %s\n", decryptedtext);
+    return 0;
+}
