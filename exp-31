@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#define BLOCK_SIZE 16 
+#define RB_128 0x87
+void print_block(uint8_t *block, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        printf("%02x ", block[i]);
+    }
+    printf("\n");
+}
+void left_shift(uint8_t *input, uint8_t *output, size_t size) {
+    uint8_t overflow = 0;
+    for (int i = size - 1; i >= 0; i--) {
+        output[i] = (input[i] << 1) | overflow;
+        overflow = (input[i] & 0x80) ? 1 : 0;
+    }
+}
+void xor_with_rb(uint8_t *block) {
+    block[BLOCK_SIZE - 1] ^= RB_128;
+}
+void generate_subkeys(uint8_t *L, uint8_t *K1, uint8_t *K2) {
+    uint8_t L_shifted[BLOCK_SIZE] = {0};
+    left_shift(L, L_shifted, BLOCK_SIZE);
+    if (L[0] & 0x80) {
+        xor_with_rb(L_shifted);
+    }
+    memcpy(K1, L_shifted, BLOCK_SIZE);
+    left_shift(K1, L_shifted, BLOCK_SIZE);
+    if (K1[0] & 0x80) {
+        xor_with_rb(L_shifted);
+    }
+    memcpy(K2, L_shifted, BLOCK_SIZE);
+}
+int main() {
+    uint8_t L[BLOCK_SIZE] = {0x00};
+    uint8_t K1[BLOCK_SIZE] = {0};
+    uint8_t K2[BLOCK_SIZE] = {0};
+    generate_subkeys(L, K1, K2);
+    printf("L: ");
+    print_block(L, BLOCK_SIZE);
+    printf("K1: ");
+    print_block(K1, BLOCK_SIZE);
+    printf("K2: ");
+    print_block(K2, BLOCK_SIZE);
+    return 0;
+}
